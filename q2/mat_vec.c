@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <time.h>
 
+#define NUM_ELEM(n) (n * 16) // returns # of elements given the # of rows
+
 double CLOCK() {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
@@ -10,92 +12,91 @@ double CLOCK() {
 }
 
 // matrix-vector multiplication with AVX512 instruction set
-void matvec_avx512(const float *a, const float *x, float *res, int len_a, int len_x) {
+void matvec_avx512f(const float *a, const float *x, float *res, int len_a, int len_x) {
     // Initialize result array
-    for(int i = 0; i < N; ++i) {
+    for(int i = 0; i < len_x; ++i) {
         res[i] = 0.0f;
     }
 
     // Process each row of the matrix
-    for (int i = 0; i < len_a; ++i) {
-        __m512 a_vec, x_vec, sum_vec;
+    __m512 a_vec, x_vec, sum_vec;
+    for (int i = 0; i + 16 <= len_a; i += 16) {
         sum_vec = _mm512_setzero_ps(); // initialize sum vector to zero
-        
 
         // Use dot product for each row of the matrix
-        for (int j = 0; j < len_x; j += 16) {
+        for (int j = 0; j + 16 <= len_x; j += 16) {
             // Load 16 elements of the matrix row
-            a_vec = _mm512_loadu_ps(&a[i * N + j]);
+            a_vec = _mm512_loadu_ps(&a[i + j]);
             x_vec = _mm512_loadu_ps(&x[j]);
             sum_vec = _mm512_fmadd_ps(a_vec, x_vec, sum_vec);
         }
-        
+
         // horizontal add the 16 floats in sum vector
         res[i] = _mm512_reduce_add_ps(sum_vec);
     }
 }
 
 // matrix-vector multiplication
-void matvec(const float *a, const float *x, float *res, int M, int N) {
+void matvec(const float *a, const float *x, float *res, int len_a, int len_x) {
     // Initialize result array
-    for(int i = 0; i < N; ++i) {
+    for(int i = 0; i < len_x; ++i) {
         res[i] = 0.0f;
     }
 
     // Iterate over each row of the matrix
-    for (int i = 0; i < M; ++i) {
+    for (int i = 0; i + 16 <= len_a; i += 16) {
         float sum = 0.0f;  // Initialize the sum for each row
         // Perform dot product of row i of A with vector x
-        for (int j = 0; j < N; ++j) {
-            sum += a[i * N + j] * x[j];
+        for (int j = 0; j < len_x; ++j) {
+            sum += a[i + j] * x[j];
         }
         res[i] = sum;  // Store the result in y
     }
 }
 
 void print_vector(const float *v, int len) {
-    for(int i = 0; i < len; i++) {
+    for(int i = 0; i <= len; i++) {
         printf("%f ", v[i]);
-        if (i % 16 == 0) printf("\n");
     }
     printf("\n");
 }
 
 int main() {
-    #define M 512 // 32 * 16 fp
-    #define N 16  // 16 fp vector
+    #define M 32 // # of AVX vectors in matrix
+    #define N 1  // vector
+
     double start, finish, total;
-    int i;
-    float a[M], x[N];
-    float res[N];
-    size_t m_len = sizeof(a)/sizeof(a[0]);
+    int i,j;
+    float a[NUM_ELEM(M)], x[NUM_ELEM(N)];
+    float res[NUM_ELEM(N)];
+    size_t a_len = sizeof(a)/sizeof(a[0]);
     size_t x_len = sizeof(x)/sizeof(x[0]);
     // size_t len = sizeof(a) / sizeof(a[0]);
 
-    for (i=0; i< M; i++) {
+    for (i=0; i< NUM_ELEM(M); i++) {
         a[i] = (float) i;
     }
 
-    for(j=0; j< N; j++) {
-        x[j] = (float) j;
+    for(j=0; j< NUM_ELEM(N); j++) {
+        x[j] = 1.0f;
     }
 
     start = CLOCK();
-    matvec_avx512f(a, x, res, m_len, x_len);
+    matvec_avx512f(a, x, res, a_len, x_len);
     finish = CLOCK();
 
     total = finish-start;
     printf("Dot product result\n"); /* prevent dead code elimination */
-    print_vector(res, N);
+    print_vector(res, NUM_ELEM(N));
     printf("The total time for matrix multiplication with AVX = %f ms\n", total);
 
     start = CLOCK();
-    matvec(a, x, res, m_len, x_len);
+    matvec(a, x, res, a_len, x_len);
     finish = CLOCK();
     total = finish-start;
 
     printf("Dot product result\n"); /* prevent dead code elimination */
-    print_vector(res, N);
+    print_vector(res, NUM_ELEM(N));
     printf("The total time for matrix multiplication without AVX = %f ms\n", total);
     return 0;
 }
