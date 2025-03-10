@@ -32,7 +32,7 @@ void matvec_avx512f(const float *a, const float *x, float *res, int len_a, int l
         }
 
         // horizontal add the 16 floats in sum vector
-        res[i] = _mm512_reduce_add_ps(sum_vec);
+        res[(i/16)] = _mm512_reduce_add_ps(sum_vec);
     }
 }
 
@@ -50,7 +50,7 @@ void matvec(const float *a, const float *x, float *res, int len_a, int len_x) {
         for (int j = 0; j < len_x; ++j) {
             sum += a[i + j] * x[j];
         }
-        res[i] = sum;  // Store the result in y
+        res[(i/16)] = sum;  // Store the result in y
     }
 }
 
