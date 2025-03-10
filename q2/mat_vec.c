@@ -74,7 +74,7 @@ int main() {
     }
 
     // Initialize result array
-    for(int i = 0; i < len_x; ++i) {
+    for(int i = 0; i < NUM_ELEM(N); ++i) {
         res[i] = 0.0f;
     }
 
@@ -88,7 +88,7 @@ int main() {
     printf("The total time for matrix multiplication with AVX = %f ms\n", total);
     
     // reinitialize result array
-    for(int i = 0; i < len_x; ++i) {
+    for(int i = 0; i < NUM_ELEM(N); ++i) {
         res[i] = 0.0f;
     }
 
