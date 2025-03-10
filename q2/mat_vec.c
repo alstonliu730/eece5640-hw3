@@ -20,19 +20,19 @@ void matvec_avx512f(const float *a, const float *x, float *res, int len_a, int l
 
     // Process each row of the matrix
     __m512 a_vec, x_vec, sum_vec;
-    for (int i = 0; i + 16 <= len_a; i += 16) {
+    for (int i = 0; i < len_a; i++) {
         sum_vec = _mm512_setzero_ps(); // initialize sum vector to zero
 
         // Use dot product for each row of the matrix
         for (int j = 0; j + 16 <= len_x; j += 16) {
             // Load 16 elements of the matrix row
-            a_vec = _mm512_loadu_ps(&a[i + j]);
+            a_vec = _mm512_loadu_ps(&a[i * len_x + j]);
             x_vec = _mm512_loadu_ps(&x[j]);
             sum_vec = _mm512_fmadd_ps(a_vec, x_vec, sum_vec);
         }
 
         // horizontal add the 16 floats in sum vector
-        res[(i/16)] = _mm512_reduce_add_ps(sum_vec);
+        res[i] = _mm512_reduce_add_ps(sum_vec);
     }
 }
 
@@ -44,13 +44,13 @@ void matvec(const float *a, const float *x, float *res, int len_a, int len_x) {
     }
 
     // Iterate over each row of the matrix
-    for (int i = 0; i + 16 <= len_a; i += 16) {
+    for (int i = 0; i < len_a; i++) {
         float sum = 0.0f;  // Initialize the sum for each row
         // Perform dot product of row i of A with vector x
         for (int j = 0; j < len_x; ++j) {
-            sum += a[i + j] * x[j];
+            sum += a[i * len_x + j] * x[j];
         }
-        res[(i/16)] = sum;  // Store the result in y
+        res[i] = sum;  // Store the result in y
     }
 }
 
@@ -69,7 +69,7 @@ int main() {
     int i,j;
     float a[NUM_ELEM(M)], x[NUM_ELEM(N)];
     float res[NUM_ELEM(N)];
-    size_t a_len = sizeof(a)/sizeof(a[0]);
+    size_t a_len = M; // # of rows
     size_t x_len = sizeof(x)/sizeof(x[0]);
     // size_t len = sizeof(a) / sizeof(a[0]);
 
