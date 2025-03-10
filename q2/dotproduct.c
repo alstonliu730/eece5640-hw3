@@ -34,7 +34,7 @@ float dot_product_avx512f(const float *a, const float *b, size_t len) {
         b_vec = _mm512_loadu_ps(&b[i]);
         sum_vec = _mm512_fmadd_ps(a_vec, b_vec, sum_vec);
     }
-    
+
     _mm512_storeu_ps(sum_arr, sum_vec);
 
     float total_sum = 0.0f;
@@ -69,7 +69,7 @@ int main() {
     total = finish-start;
     printf("Dot product result = %f \n", result); /* prevent dead code elimination */
     printf("The total time for matrix multiplication with AVX = %f ms\n", total);
-    
+
     start = CLOCK();
     result = dot_product(a, b, len);
     finish = CLOCK();
