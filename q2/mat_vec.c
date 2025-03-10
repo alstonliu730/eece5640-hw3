@@ -13,11 +13,6 @@ double CLOCK() {
 
 // matrix-vector multiplication with AVX512 instruction set
 void matvec_avx512f(const float *a, const float *x, float *res, int len_a, int len_x) {
-    // Initialize result array
-    for(int i = 0; i < len_x; ++i) {
-        res[i] = 0.0f;
-    }
-
     // Process each row of the matrix
     __m512 a_vec, x_vec, sum_vec;
     for (int i = 0; i < len_a; i++) {
@@ -38,11 +33,6 @@ void matvec_avx512f(const float *a, const float *x, float *res, int len_a, int l
 
 // matrix-vector multiplication
 void matvec(const float *a, const float *x, float *res, int len_a, int len_x) {
-    // Initialize result array
-    for(int i = 0; i < len_x; ++i) {
-        res[i] = 0.0f;
-    }
-
     // Iterate over each row of the matrix
     for (int i = 0; i < len_a; i++) {
         float sum = 0.0f;  // Initialize the sum for each row
@@ -56,13 +46,15 @@ void matvec(const float *a, const float *x, float *res, int len_a, int len_x) {
 
 void print_vector(const float *v, int len) {
     for(int i = 0; i <= len; i++) {
+        if (i % 16 == 0)
+            printf("\n");
         printf("%f ", v[i]);
     }
     printf("\n");
 }
 
 int main() {
-    #define M 32 // # of AVX vectors in matrix
+    #define M 256 // # of AVX vectors in matrix
     #define N 1  // vector
 
     double start, finish, total;
@@ -81,6 +73,11 @@ int main() {
         x[j] = 1.0f;
     }
 
+    // Initialize result array
+    for(int i = 0; i < len_x; ++i) {
+        res[i] = 0.0f;
+    }
+
     start = CLOCK();
     matvec_avx512f(a, x, res, a_len, x_len);
     finish = CLOCK();
@@ -89,8 +86,13 @@ int main() {
     printf("Dot product result\n"); /* prevent dead code elimination */
     print_vector(res, NUM_ELEM(N));
     printf("The total time for matrix multiplication with AVX = %f ms\n", total);
+    
+    // reinitialize result array
+    for(int i = 0; i < len_x; ++i) {
+        res[i] = 0.0f;
+    }
 
-    start = CLOCK();
+    start = CLOCK();    
     matvec(a, x, res, a_len, x_len);
     finish = CLOCK();
     total = finish-start;
