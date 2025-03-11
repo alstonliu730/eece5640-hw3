@@ -45,7 +45,7 @@ void matvec(const float *a, const float *x, float *res, int len_a, int len_x) {
 }
 
 void print_vector(const float *v, int len) {
-    for(int i = 0; i <= len; i++) {
+    for(int i = 0; i < len; i++) {
         if (i % 16 == 0)
             printf("\n");
         printf("%f ", v[i]);
@@ -54,7 +54,7 @@ void print_vector(const float *v, int len) {
 }
 
 int main() {
-    #define M 256 // # of AVX vectors in matrix
+    #define M 32 // # of AVX vectors in matrix
     #define N 1  // vector
 
     double start, finish, total;
@@ -83,7 +83,7 @@ int main() {
     finish = CLOCK();
 
     total = finish-start;
-    printf("Dot product result\n"); /* prevent dead code elimination */
+    printf("Mat-vec result\n"); /* prevent dead code elimination */
     print_vector(res, NUM_ELEM(N));
     printf("The total time for matrix multiplication with AVX = %f ms\n", total);
     
@@ -97,7 +97,7 @@ int main() {
     finish = CLOCK();
     total = finish-start;
 
-    printf("Dot product result\n"); /* prevent dead code elimination */
+    printf("Mat-vec result\n"); /* prevent dead code elimination */
     print_vector(res, NUM_ELEM(N));
     printf("The total time for matrix multiplication without AVX = %f ms\n", total);
     return 0;
