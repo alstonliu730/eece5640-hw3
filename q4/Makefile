@@ -10,7 +10,7 @@ all: $(TARGETS)
 	make $(TARGETS)
 
 matmul: matmul.c
-	$(CC) $(CFLAGS) -o $@ matmul.c $(OMPFLAGS) $(AVXFLAGS)
+	$(CC) $(CFLAGS) -o $@ matmul.c $(OMPFLAGS) 
 
 matmul_blas: matmul_blas.c
 	$(CC) $(CFLAGS) -o $@ matmul.c $(BLAS_FLAGS)

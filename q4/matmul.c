@@ -3,38 +3,6 @@
 #include <stdint.h>
 #include <time.h>
 #include <omp.h>
-#include <x86intrin.h>
-
-static const uint32_t BLOCKSIZE = 32;
-
-static void do_block(const uint32_t n, const uint32_t si, const uint32_t sj, const uint32_t sk, const double *A, const double*B, double *C) {
-    const uint32_t UNROLL = 4;
-
-    for( uint32_t i = si; i < si + BLOCKSIZE; i += UNROLL * 8)
-    {
-        for( uint32_t j = sj; j < sj + BLOCKSIZE; ++j)
-        {
-            __m512d c[UNROLL];
-            for( uint32_t r = 0; r < UNROLL; r++)
-            {
-                c[r] = _mm512_load_pd(C + i + r * 8 + j * n); //[ UNROLL];
-            }
-
-            for( uint32_t k = sk; k < sk + BLOCKSIZE; k++ )
-            {
-                __m512d bb = _mm512_broadcastsd_pd(_mm_load_sd(B + j * n + k));
-                for( uint32_t r = 0; r < UNROLL; r++)
-                {
-                    c[r] = _mm512_fmadd_pd(_mm512_load_pd(A + n * k + r * 8 + i), bb, c[r]);
-                }
-            }
-            for( uint32_t r = 0; r < UNROLL; r++)
-            {
-                _mm512_store_pd(C + i + r * 8 + j * n, c[r]);
-            }
-        }
-    }
-}
 
 #define N 256
 
@@ -51,22 +19,6 @@ void matmul_omp(float *m1, float *m2, float *m3) {
         for(j=0; j < N; j++) {
             for(k = 0; k < N; k++) {
                 m3[i][j] += m1[i][k] * m2[k][j];
-            }
-        }
-    }
-}
-
-
-
-void dgemm_openmp(const uint32_t n, const double* A, const double* B, double* C) {
-    #pragma omp parallel for
-    for( uint32_t sj = 0; sj < n; sj += BLOCKSIZE )
-    {
-        for( uint32_t si = 0; si < n; si += BLOCKSIZE )
-        {
-            for( uint32_t sk = 0; sk < n; sk += BLOCKSIZE )
-            {
-                do_block(n, si, sj, sk, A, B, C);
             }
         }
     }
@@ -91,7 +43,7 @@ int main() {
 
     // Perform matrix multiplication using openMP brute-force
     start = CLOCK();
-    dgemm_openmp(N, A, B, res1);
+    matmul_openmp(N, A, B, res1);
     finish = CLOCK();
     total = finish - start;
 
