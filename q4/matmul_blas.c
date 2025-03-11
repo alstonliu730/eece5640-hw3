@@ -4,6 +4,7 @@
 #include <cblas.h>
 
 #define N 256
+#define N_2 (N * N)
 
 double CLOCK() {
     struct timespec t;
@@ -16,15 +17,15 @@ int main() {
     double start, finish, total;
 
     // Allocate memory for matrices
-    float *A = (float *)malloc(N * N * sizeof(float));
-    float *B = (float *)malloc(N * N * sizeof(float));
-    float *res1 = (float *)malloc(N * N * sizeof(float));
+    float *A = (float *)malloc(N_2 * sizeof(float));
+    float *B = (float *)malloc(N_2 * sizeof(float));
+    float *res1 = (float *)malloc(N_2 * sizeof(float));
 
     // Initialize matrix values (example)
-    for (int i = 0; i < m * k; i++) {
+    for (int i = 0; i < N_2; i++) {
         A[i] = i + 1;
     }
-    for (int i = 0; i < k * n; i++) {
+    for (int i = 0; i < N_2; i++) {
         B[i] = i + 1;
     }
 
@@ -35,8 +36,8 @@ int main() {
     total = finish - start;
     
     // Print the result matrix 2
-    printf("Mut Mul cblas\n");
-    printf("Result 1: %g\n", res1[N-1][N-1]);
+    printf("OpenBLAS MatMul\n");
+    printf("Result 1: %g\n", res1[(N-1) * N + (N-1)]);
     printf("Time Elapsed: %lfms\n", total);
 
     // Free allocated memory
