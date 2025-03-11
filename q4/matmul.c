@@ -14,7 +14,7 @@ double CLOCK() {
 
 void matmul_omp(float *m1, float *m2, float *m3) {
     int i,j,k;
-    #pragma omp parallel for simd private(j, k) shared(m1, m2, m3)
+    #pragma omp parallel for simd private(j,k) shared(m1,m2,m3)
     for(i = 0; i < N; i++) {
         for(j=0; j < N; j++) {
             for(k = 0; k < N; k++) {
