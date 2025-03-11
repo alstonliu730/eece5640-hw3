@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -g -O2
-BLAS_FLAGS = -I /usr/include/openblas -lopenblas
+BLAS_FLAGS = -lopenblas
 OMPFLAGS = -fopenmp
 
 TARGETS = matmul matmul_blas
@@ -12,7 +12,7 @@ matmul: matmul.c
 	$(CC) $(CFLAGS) -o $@ matmul.c $(OMPFLAGS)
 
 matmul_blas: matmul_blas.c
-	$(CC) $(CFLAGS) -o $@ matmul.c $(BLAS_FLAGS)
+	$(CC) $(CFLAGS) -o $@ matmul_blas.c $(BLAS_FLAGS)
 	
 clean:
 	rm -f $(TARGETS)
